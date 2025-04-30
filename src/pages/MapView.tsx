@@ -24,8 +24,12 @@ const MapView = () => {
     
     // Clean up on component unmount
     return () => {
-      document.head.removeChild(leafletCss);
-      document.head.removeChild(leafletScript);
+      if (document.head.contains(leafletCss)) {
+        document.head.removeChild(leafletCss);
+      }
+      if (document.head.contains(leafletScript)) {
+        document.head.removeChild(leafletScript);
+      }
     };
   }, []);
 

@@ -19,6 +19,13 @@ const mockIssues = [
   { id: 5, title: 'Bus Stop Damage', description: 'Bus stop shelter damaged by vandalism', category: 'transport', severity: 2, status: 'in-progress', lat: 40.709, lng: -74.005, date: '2025-04-20' },
 ];
 
+// Define a type for the Leaflet library
+declare global {
+  interface Window {
+    L: any;
+  }
+}
+
 const MapComponent = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
@@ -160,7 +167,7 @@ const MapComponent = () => {
       
       <div className="map-container relative bg-urban-navy/30 border border-urban-cyan/30 rounded-2xl overflow-hidden">
         {/* OpenStreetMap will be rendered here */}
-        <div ref={mapRef} className="h-full w-full"></div>
+        <div ref={mapRef} className="h-[500px] w-full"></div>
       </div>
       
       <div className="mt-6">
