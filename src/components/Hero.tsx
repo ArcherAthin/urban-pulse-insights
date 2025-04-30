@@ -125,31 +125,15 @@ const Hero = () => {
     };
   }, []);
   
-  // Add scroll trigger animations
+  // Add initial animation to ensure elements are visible immediately on load
   useEffect(() => {
-    const observerOptions = {
-      threshold: 0.1
-    };
-    
-    const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-fade-in');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, observerOptions);
-    
-    const elements = document.querySelectorAll('.animate-on-scroll');
-    elements.forEach(el => {
-      observer.observe(el);
-    });
-    
-    return () => {
-      elements.forEach(el => {
-        observer.unobserve(el);
-      });
-    };
+    // Apply animation to hero content with a slight delay for smooth appearance
+    const heroContent = document.querySelector('.hero-content');
+    if (heroContent) {
+      setTimeout(() => {
+        heroContent.classList.add('animate-fade-in');
+      }, 100);
+    }
   }, []);
   
   return (
@@ -170,7 +154,7 @@ const Hero = () => {
       
       {/* Content */}
       <div className="container mx-auto px-6 z-10 text-center flex flex-col items-center justify-center min-h-screen">
-        <div className="animate-on-scroll opacity-0">
+        <div className="hero-content animate-on-scroll">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 text-gradient-to-r from-urban-cyan via-urban-white to-urban-white">
             Smart Cities Begin with <br />
             <span className="text-urban-cyan">Smarter Feedback</span>

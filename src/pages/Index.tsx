@@ -9,34 +9,46 @@ import FeatureCard from '@/components/FeatureCard';
 const Index = () => {
   // Initialize scroll animations
   useEffect(() => {
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-fade-in');
-          observer.unobserve(entry.target);
+    // Wait for DOM content to be fully loaded
+    const initAnimations = () => {
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      };
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-fade-in');
+          }
+        });
+      }, observerOptions);
+      
+      // Observe all elements with animate-on-scroll class
+      document.querySelectorAll('.animate-on-scroll').forEach(el => {
+        observer.observe(el);
+      });
+      
+      // Apply initial animation to elements that are already in the viewport
+      document.querySelectorAll('.animate-on-scroll').forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
+        if (!(rect.bottom < 0 || rect.top - viewHeight >= 0)) {
+          setTimeout(() => {
+            el.classList.add('animate-fade-in');
+          }, 100);
         }
       });
-    }, observerOptions);
-    
-    // Observe all elements with animate-on-scroll class
-    document.querySelectorAll('.animate-on-scroll').forEach(el => {
-      observer.observe(el);
-    });
-    
-    return () => {
-      document.querySelectorAll('.animate-on-scroll').forEach(el => {
-        observer.unobserve(el);
-      });
     };
+
+    // Initialize animations with a slight delay to ensure DOM is ready
+    setTimeout(initAnimations, 200);
+    
+    // No need for cleanup as we're ensuring elements remain visible
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col page-enter page-enter-active">
       <Navbar />
       
       <main className="flex-grow">
@@ -46,7 +58,7 @@ const Index = () => {
         {/* Features Section */}
         <section className="py-16 px-4">
           <div className="container mx-auto">
-            <div className="text-center mb-12 animate-on-scroll opacity-0">
+            <div className="text-center mb-12 animate-on-scroll">
               <h2 className="text-3xl md:text-4xl font-bold text-urban-white mb-4">
                 How Urban<span className="text-urban-cyan">UX</span> Works
               </h2>
@@ -56,8 +68,8 @@ const Index = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Feature 1 */}
-              <div className="animate-on-scroll opacity-0" style={{ transitionDelay: '100ms' }}>
+              {/* Feature cards */}
+              <div className="animate-on-scroll" style={{ transitionDelay: '100ms' }}>
                 <FeatureCard
                   icon={
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-8 h-8">
@@ -70,7 +82,7 @@ const Index = () => {
               </div>
               
               {/* Feature 2 */}
-              <div className="animate-on-scroll opacity-0" style={{ transitionDelay: '200ms' }}>
+              <div className="animate-on-scroll" style={{ transitionDelay: '200ms' }}>
                 <FeatureCard
                   icon={
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-8 h-8">
@@ -83,7 +95,7 @@ const Index = () => {
               </div>
               
               {/* Feature 3 */}
-              <div className="animate-on-scroll opacity-0" style={{ transitionDelay: '300ms' }}>
+              <div className="animate-on-scroll" style={{ transitionDelay: '300ms' }}>
                 <FeatureCard
                   icon={
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-8 h-8">
@@ -96,7 +108,7 @@ const Index = () => {
               </div>
               
               {/* Feature 4 */}
-              <div className="animate-on-scroll opacity-0" style={{ transitionDelay: '400ms' }}>
+              <div className="animate-on-scroll" style={{ transitionDelay: '400ms' }}>
                 <FeatureCard
                   icon={
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-8 h-8">
@@ -115,15 +127,15 @@ const Index = () => {
         <section className="py-16 bg-gradient-to-r from-urban-navy to-urban-navy/90">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center p-6 glass-card animate-on-scroll opacity-0" style={{ transitionDelay: '100ms' }}>
+              <div className="text-center p-6 glass-card animate-on-scroll" style={{ transitionDelay: '100ms' }}>
                 <span className="text-4xl font-bold text-urban-cyan block mb-2">5,000+</span>
                 <p className="text-urban-white text-lg">Issues Resolved</p>
               </div>
-              <div className="text-center p-6 glass-card animate-on-scroll opacity-0" style={{ transitionDelay: '200ms' }}>
+              <div className="text-center p-6 glass-card animate-on-scroll" style={{ transitionDelay: '200ms' }}>
                 <span className="text-4xl font-bold text-urban-purple block mb-2">15</span>
                 <p className="text-urban-white text-lg">City Partners</p>
               </div>
-              <div className="text-center p-6 glass-card animate-on-scroll opacity-0" style={{ transitionDelay: '300ms' }}>
+              <div className="text-center p-6 glass-card animate-on-scroll" style={{ transitionDelay: '300ms' }}>
                 <span className="text-4xl font-bold text-urban-lime block mb-2">94%</span>
                 <p className="text-urban-white text-lg">User Satisfaction</p>
               </div>
@@ -134,7 +146,7 @@ const Index = () => {
         {/* CTA Section */}
         <section className="py-20 px-4">
           <div className="container mx-auto max-w-4xl">
-            <div className="glass-card p-8 text-center neon-border animate-on-scroll opacity-0">
+            <div className="glass-card p-8 text-center neon-border animate-on-scroll">
               <h2 className="text-3xl md:text-4xl font-bold text-urban-white mb-6">
                 Ready to improve your city?
               </h2>

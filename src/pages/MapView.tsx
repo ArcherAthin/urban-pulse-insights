@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MapComponent from '@/components/MapComponent';
@@ -33,13 +33,28 @@ const MapView = () => {
     };
   }, []);
 
+  // Initialize animations for this page
+  useEffect(() => {
+    const initPageAnimations = () => {
+      // Apply animations to page content with a slight delay
+      document.querySelectorAll('.animate-on-scroll').forEach((el, index) => {
+        setTimeout(() => {
+          el.classList.add('animate-fade-in');
+        }, 100 + (index * 100));
+      });
+    };
+    
+    // Initialize animations after a short delay to ensure content is rendered
+    setTimeout(initPageAnimations, 200);
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col page-enter page-enter-active">
       <Navbar />
       
-      <main className="flex-grow pt-24 pb-16 px-4 animate-fade-in">
+      <main className="flex-grow pt-24 pb-16 px-4">
         <div className="container mx-auto">
-          <header className="mb-8 text-center">
+          <header className="mb-8 text-center animate-on-scroll">
             <h1 className="text-3xl md:text-4xl font-bold text-urban-white mb-4">
               Urban Issues Map
             </h1>
@@ -48,7 +63,9 @@ const MapView = () => {
             </p>
           </header>
           
-          <MapComponent />
+          <div className="animate-on-scroll" style={{ transitionDelay: '200ms' }}>
+            <MapComponent />
+          </div>
         </div>
       </main>
       
