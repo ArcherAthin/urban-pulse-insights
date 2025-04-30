@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { MapPin, Filter } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -11,25 +12,108 @@ import {
 
 // Mock data for our map pins
 const mockIssues = [
-  { id: 1, title: 'Pothole', category: 'roads', severity: 3, status: 'pending', lat: 40.712, lng: -74.006 },
-  { id: 2, title: 'Broken Streetlight', category: 'electricity', severity: 2, status: 'in-progress', lat: 40.714, lng: -74.009 },
-  { id: 3, title: 'Water Leak', category: 'water', severity: 4, status: 'pending', lat: 40.718, lng: -74.002 },
-  { id: 4, title: 'Garbage Pile', category: 'sanitation', severity: 3, status: 'resolved', lat: 40.715, lng: -74.012 },
-  { id: 5, title: 'Bus Stop Damage', category: 'transport', severity: 2, status: 'in-progress', lat: 40.709, lng: -74.005 },
+  { id: 1, title: 'Pothole', description: 'Large pothole causing traffic hazard', category: 'roads', severity: 3, status: 'pending', lat: 40.712, lng: -74.006, date: '2025-04-15' },
+  { id: 2, title: 'Broken Streetlight', description: 'Streetlight not working for 3 days', category: 'electricity', severity: 2, status: 'in-progress', lat: 40.714, lng: -74.009, date: '2025-04-18' },
+  { id: 3, title: 'Water Leak', description: 'Water leaking from main pipe', category: 'water', severity: 4, status: 'pending', lat: 40.718, lng: -74.002, date: '2025-04-12' },
+  { id: 4, title: 'Garbage Pile', description: 'Uncollected trash for a week', category: 'sanitation', severity: 3, status: 'resolved', lat: 40.715, lng: -74.012, date: '2025-04-10' },
+  { id: 5, title: 'Bus Stop Damage', description: 'Bus stop shelter damaged by vandalism', category: 'transport', severity: 2, status: 'in-progress', lat: 40.709, lng: -74.005, date: '2025-04-20' },
 ];
 
 const MapComponent = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markersRef = useRef([]);
   
-  // In a real app, we would use a proper map library like react-map-gl or Google Maps
-  // For now, we'll use a placeholder with our UI elements
+  // Initialize OpenStreetMap
+  useEffect(() => {
+    if (mapRef.current && !mapInstanceRef.current) {
+      // Initialize map if not already initialized
+      const L = window.L;
+      if (!L) return;
+      
+      // Create map instance
+      const map = L.map(mapRef.current).setView([40.712, -74.006], 13);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      
+      mapInstanceRef.current = map;
+      
+      // Add initial markers
+      addMarkers();
+    }
+  }, []);
+
+  // Add markers based on filtered data
+  const addMarkers = () => {
+    const L = window.L;
+    if (!L || !mapInstanceRef.current) return;
+    
+    // Clear existing markers
+    if (markersRef.current.length) {
+      markersRef.current.forEach(marker => mapInstanceRef.current.removeLayer(marker));
+      markersRef.current = [];
+    }
+    
+    // Filter issues based on selected filters
+    const filteredIssues = mockIssues.filter(issue => 
+      (categoryFilter === 'all' || issue.category === categoryFilter) &&
+      (severityFilter === 'all' || issue.severity.toString() === severityFilter) &&
+      (statusFilter === 'all' || issue.status === statusFilter)
+    );
+    
+    // Add markers for filtered issues
+    filteredIssues.forEach(issue => {
+      const marker = L.marker([issue.lat, issue.lng]).addTo(mapInstanceRef.current);
+      
+      // Get status color
+      const statusColor = 
+        issue.status === 'pending' ? 'text-yellow-300' : 
+        issue.status === 'in-progress' ? 'text-blue-300' : 
+        'text-green-300';
+      
+      // Create popup content
+      const popupContent = `
+        <div class="p-3 min-w-[200px]">
+          <h3 class="font-bold">${issue.title}</h3>
+          <p class="text-sm mt-1">${issue.description}</p>
+          <div class="flex justify-between text-sm mt-2">
+            <span>Category: ${issue.category.charAt(0).toUpperCase() + issue.category.slice(1)}</span>
+            <span>Severity: ${issue.severity}/5</span>
+          </div>
+          <div class="text-sm mt-1">
+            <span class="${statusColor}">
+              ${issue.status.charAt(0).toUpperCase() + issue.status.slice(1).replace('-', ' ')}
+            </span>
+          </div>
+          <div class="text-xs mt-2 text-gray-500">
+            Reported: ${issue.date}
+          </div>
+        </div>
+      `;
+      
+      marker.bindPopup(popupContent);
+      markersRef.current.push(marker);
+    });
+  };
+
+  // Update markers when filters change
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      addMarkers();
+    }
+  }, [categoryFilter, severityFilter, statusFilter]);
   
   return (
     <div className="glass-card p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h2 className="text-2xl font-bold text-urban-white">Issue Map</h2>
+        <h2 className="text-2xl font-bold text-urban-white flex items-center">
+          <MapPin className="mr-2" /> Issue Map
+        </h2>
         
         <div className="flex flex-wrap gap-3">
           <Select onValueChange={setCategoryFilter} value={categoryFilter}>
@@ -74,31 +158,15 @@ const MapComponent = () => {
         </div>
       </div>
       
-      <div className="map-container relative bg-urban-navy/30 border border-urban-cyan/30">
-        {/* Mock map - in a real app, this would be a map component */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="text-urban-cyan/50 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="10" r="3"/>
-              <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/>
-            </svg>
-          </div>
-          <p className="text-urban-white/80 text-center max-w-md">
-            Interactive map with issue pins would be displayed here.
-            <br/>
-            In a real app, this would use Mapbox, Google Maps, or a similar service.
-          </p>
-          <Button 
-            className="mt-4 bg-urban-cyan hover:bg-urban-cyan/80 text-urban-navy"
-            onClick={() => alert('In a real app, this would navigate to your location on the map')}
-          >
-            Show my location
-          </Button>
-        </div>
+      <div className="map-container relative bg-urban-navy/30 border border-urban-cyan/30 rounded-2xl overflow-hidden">
+        {/* OpenStreetMap will be rendered here */}
+        <div ref={mapRef} className="h-full w-full"></div>
       </div>
       
       <div className="mt-6">
-        <h3 className="text-xl font-semibold text-urban-white mb-4">Recent Reports</h3>
+        <h3 className="text-xl font-semibold text-urban-white mb-4 flex items-center">
+          <Filter className="mr-2" /> Recent Reports
+        </h3>
         
         <div className="space-y-4">
           {mockIssues.filter(issue => 
@@ -106,7 +174,7 @@ const MapComponent = () => {
             (severityFilter === 'all' || issue.severity.toString() === severityFilter) &&
             (statusFilter === 'all' || issue.status === statusFilter)
           ).map(issue => (
-            <div key={issue.id} className="glass-card p-4 hover:border-urban-cyan/50 transition-colors cursor-pointer">
+            <div key={issue.id} className="glass-card p-4 hover:border-urban-cyan/50 transition-colors cursor-pointer animate-fade-in">
               <div className="flex justify-between items-start">
                 <div>
                   <h4 className="font-medium text-urban-white">{issue.title}</h4>
