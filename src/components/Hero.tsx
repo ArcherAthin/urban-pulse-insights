@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 
 const Hero = () => {
   // Reference for the animation canvas
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   
   // Animation for the background grid
   useEffect(() => {
@@ -13,6 +13,8 @@ const Hero = () => {
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
     const width = canvas.width = window.innerWidth;
     const height = canvas.height = window.innerHeight;
     
@@ -20,7 +22,7 @@ const Hero = () => {
     const gridSize = 30;
     const lineColor = 'rgba(0, 255, 255, 0.15)';
     const movingPointsCount = 8;
-    const movingPoints = Array(movingPointsCount).fill().map(() => ({
+    const movingPoints = Array(movingPointsCount).fill(null).map(() => ({
       x: Math.random() * width,
       y: Math.random() * height,
       vx: (Math.random() - 0.5) * 0.8,
@@ -129,7 +131,7 @@ const Hero = () => {
       threshold: 0.1
     };
     
-    const observer = new IntersectionObserver((entries) => {
+    const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('animate-fade-in');
@@ -138,12 +140,13 @@ const Hero = () => {
       });
     }, observerOptions);
     
-    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+    const elements = document.querySelectorAll('.animate-on-scroll');
+    elements.forEach(el => {
       observer.observe(el);
     });
     
     return () => {
-      document.querySelectorAll('.animate-on-scroll').forEach(el => {
+      elements.forEach(el => {
         observer.unobserve(el);
       });
     };
